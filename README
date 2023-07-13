@@ -1,0 +1,15 @@
+# fakecam
+
+fakecam is a simple application that serves a random image from a directory
+of images at a fixed endpoint. A new image is picked on each request.
+
+
+```
+Usage of ./fakecam:
+  -directory string
+        directory containing images (default "images")
+  -path string
+        path to serve image on (default "photo")
+  -port string
+        TCP port to bind to (default "32778")
+```
