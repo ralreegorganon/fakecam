@@ -10,8 +10,10 @@ import (
 	"time"
 )
 
-var port = flag.String("port", "32778", "TCP port to bind to")
-var directory = flag.String("directory", "images", "directory containing images")
+var (
+	port      = flag.String("port", "32778", "TCP port to bind to")
+	directory = flag.String("directory", "images", "directory containing images")
+)
 
 func main() {
 	flag.Parse()
@@ -49,6 +51,7 @@ func getPhoto(w http.ResponseWriter, r *http.Request) {
 }
 
 func getOutdated(w http.ResponseWriter, r *http.Request) {
+	noCache := r.Header.Get("Cache-Control") == "no-cache"
 	path, err := filepath.Abs(*directory)
 	if err != nil {
 		panic(err)
@@ -57,14 +60,20 @@ func getOutdated(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	file := files[rand.Intn(len(files))]
+	var index int
+	if noCache {
+		index = rand.Intn(len(files))
+	} else {
+		index = 0
+	}
+	file := files[index]
 	fileBytes, err := os.ReadFile(filepath.Join(path, file.Name()))
 	if err != nil {
 		panic(err)
 	}
 
 	var lastModified string
-	if r.Header.Get("Cache-Control") == "no-cache" {
+	if noCache {
 		lastModified = time.Now().UTC().Format(http.TimeFormat)
 	} else {
 		// Create a last modified date in the past, so that "helpful" browsers will
