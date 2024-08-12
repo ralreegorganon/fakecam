@@ -62,10 +62,17 @@ func getOutdated(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	// Create a last modified date in the past, so that "helpful" browsers will
-	// serve the image from the cache.
-	thePast := time.Now().Add(-15 * time.Minute).UTC().Format(http.TimeFormat)
-	w.Header().Set("Last-Modified", thePast)
+
+	var lastModified string
+	if r.Header.Get("Cache-Control") == "no-cache" {
+		lastModified = time.Now().UTC().Format(http.TimeFormat)
+	} else {
+		// Create a last modified date in the past, so that "helpful" browsers will
+		// serve the image from the cache.
+		lastModified = time.Now().Add(-15 * time.Minute).UTC().Format(http.TimeFormat)
+	}
+
+	w.Header().Set("Last-Modified", lastModified)
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.WriteHeader(http.StatusOK)
 	w.Write(fileBytes)
